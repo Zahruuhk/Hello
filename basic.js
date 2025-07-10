@@ -17,3 +17,4 @@ function greet(user) {
 }
 
 console.log(greet(name));
+
