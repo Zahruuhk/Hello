@@ -3,26 +3,44 @@ const app = express();
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('Hello, Express building');
+let users = [
+    {id: 1, name: 'Zaruq' }
+];
+//app.get('/', (req, res) => {
+    //res.send('Hello, Express building');
+//});
+
+//app.get('/about', (req, res) => {
+ // res.send('API JHOOR');
+//});
+app.get('/api/users', (req, res) => {
+    res.json(users);
+});
+app.post('/api/users', (req, res) => {
+  const { name, age } = req.body;
+  console.log('Received data:', req.body);
+
+  res.json({
+    message: 'User data received!',
+    data: req.body
+  });
 });
 
-app.get('/about', (req, res) => {
-  res.send('API JHOOR');
+
+app.put('/api/users/:id', (req, res) => {
+  const userId = parseInt(req.params.id);
+  const user = users.find(u => u.id === userId);
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  user.name = req.body.name || user.name;
+  res.json(user);
 });
-app.get('/api/user', (req, res) => {
-    res.json({
-       name: 'Zaruq Abdulmuqsit' ,
-       age: 22,
-       backendDev: true
-    });
-});
-app.post('/api/user', (req, res) => {
-    console.log('Received data:', req.body);
-    res.json({
-        message: 'User data received',
-        data: req.body
-    });
+
+app.delete('/api/users/:id', (req, res) => {
+  const userId = parseInt(req.params.id);
+  users = users.filter(u => u.id !== userId);
+  res.json({ message: 'User deleted' });
 });
 
 const PORT = 3000;
