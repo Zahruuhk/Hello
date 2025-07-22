@@ -17,13 +17,9 @@ app.get('/api/users', (req, res) => {
     res.json(users);
 });
 app.post('/api/users', (req, res) => {
-  const { name, age } = req.body;
-  console.log('Received data:', req.body);
-
-  res.json({
-    message: 'User data received!',
-    data: req.body
-  });
+  const newUser = { id: users.length + 1, name: req.body.name };
+  users.push(newUser);
+  res.status(201).json(newUser);
 });
 
 
@@ -38,11 +34,9 @@ app.put('/api/users/:id', (req, res) => {
 });
 
 app.delete('/api/users/:id', (req, res) => {
-  const userId = parseInt(req.params.id);
-  users = users.filter(u => u.id !== userId);
-  res.json({ message: 'User deleted' });
+  users = users.filter(u => u.id != req.params.id);
+  res.json({ msg: 'Deleted' });
 });
-
 const PORT = 3000;
 
 app.listen(PORT, () => {
