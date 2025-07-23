@@ -1,44 +1,79 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const User = require('./models/User'); // Make sure this file exists
 const app = express();
 
+// MongoDB connection URI
+const MONGO_URI = 'mongodb+srv://Zaruq2005:Zaruq2005@zaruq1.hb30f9q.mongodb.net/user_api?retryWrites=true&w=majority';
+
+// Connect to MongoDB
+mongoose.connect(MONGO_URI, { 
+  useNewUrlParser: true, 
+  useUnifiedTopology: true 
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('MongoDB connection error:', err));
+
+// Middleware to parse JSON
 app.use(express.json());
 
-let users = [
-    {id: 1, name: 'Zaruq' }
-];
-//app.get('/', (req, res) => {
-    //res.send('Hello, Express building');
-//});
+// Routes
 
-//app.get('/about', (req, res) => {
- // res.send('API JHOOR');
-//});
-app.get('/api/users', (req, res) => {
+// Get all users
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find();
     res.json(users);
-});
-app.post('/api/users', (req, res) => {
-  const newUser = { id: users.length + 1, name: req.body.name };
-  users.push(newUser);
-  res.status(201).json(newUser);
-});
-
-
-app.put('/api/users/:id', (req, res) => {
-  const userId = parseInt(req.params.id);
-  const user = users.find(u => u.id === userId);
-  if (!user) {
-    return res.status(404).json({ message: 'User not found' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
   }
-  user.name = req.body.name || user.name;
-  res.json(user);
 });
 
-app.delete('/api/users/:id', (req, res) => {
-  users = users.filter(u => u.id != req.params.id);
-  res.json({ msg: 'Deleted' });
+// Create a new user
+app.post('/api/users', async (req, res) => {
+  try {
+    const user = new User({ name: req.body.name });
+    await user.save();
+    res.status(201).json(user);
+  } catch (err) {
+    res.status(400).json({ error: 'Failed to create user' });
+  }
 });
+
+// Update a user by ID
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { name: req.body.name },
+      { new: true } // return the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
+// Delete a user by ID
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ msg: 'Deleted successfully' });
+  } catch (err) {
+    res.status(400).json({ error: 'Failed to delete user' });
+  }
+});
+
+// Start the server
 const PORT = 3000;
-
 app.listen(PORT, () => {
-    console.log(`Server is listening on http://localhost:${PORT}`);
+  console.log(`Server is listening on http://localhost:${PORT}`);
 });
